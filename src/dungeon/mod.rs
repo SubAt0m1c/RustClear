@@ -33,7 +33,7 @@ pub struct Dungeon {
 
 impl Dungeon {
 
-    pub fn with_rooms_and_doors(rooms: Vec<Room>, doors: Vec<Door>) -> Dungeon {
+    pub fn with_rooms_and_doors(rooms: Vec<Room>, doors: Vec<Door>) -> Result<Dungeon, Box<dyn std::error::Error>> {
         let mut index_grid = [0; 36];
 
         // populate index grid
@@ -41,24 +41,32 @@ impl Dungeon {
             for (x, z) in room.segments.iter() {
                 let segment_index = x + z * 6;
 
+                if segment_index > index_grid.len() - 1 {
+                    return Err(format!("Segment index for {},{} out of bounds: {}", x, z, segment_index).as_str().into())
+                }
+
+                if index_grid[segment_index] != 0 {
+                    return Err(format!("Segment at {},{} is already occupied by {}!", x, z, index_grid[segment_index]).as_str().into())
+                }
+
                 index_grid[segment_index] = room_index + 1;
             }
         }
 
         // println!("grid {:?}", &index_grid);
 
-        Dungeon {
+        Ok(Dungeon {
             rooms,
             doors,
             index_grid,
-        }
+        })
     }
 
     // Layout String:
     // 36 x room ids, two digits long each. 00 = no room, 01 -> 06 are special rooms like spawn, puzzles etc
     // 07 -> ... are normal rooms, with unique ids to differentiate them and preserve layout
     // Doors are 60x single digit numbers in the order left -> right top -> down for every spot they can possibly spawn
-    pub fn from_string(layout_str: &str, room_data_storage: &HashMap<usize, RoomData>) -> Dungeon {
+    pub fn from_string(layout_str: &str, room_data_storage: &HashMap<usize, RoomData>) -> Result<Dungeon, Box<dyn std::error::Error>> {
         let mut rooms: Vec<Room> = Vec::new();
         // For normal rooms which can be larger than 1x1, store their segments and make the whole room in one go later
         let mut room_id_map: HashMap<usize, Vec<(usize, usize)>> = HashMap::new();

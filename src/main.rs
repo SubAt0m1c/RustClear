@@ -22,6 +22,7 @@ use anyhow::Result;
 use include_dir::include_dir;
 use rand::seq::IndexedRandom;
 use std::collections::HashMap;
+use std::env;
 use std::time::Duration;
 use tokio::sync::mpsc::unbounded_channel;
 
@@ -36,6 +37,7 @@ async fn main() -> Result<()> {
     let (network_tx, network_rx) = unbounded_channel::<NetworkThreadMessage>();
     let (main_tx, mut main_rx) = unbounded_channel::<MainThreadMessage>();
 
+    let args: Vec<String> = env::args().collect();
 
     let mut server = Server::initialize(network_tx);
     server.world.server = &mut server;
@@ -69,13 +71,18 @@ async fn main() -> Result<()> {
     let dungeon_strings = include_str!("dungeon_storage/dungeons.txt")
         .split("\n")
         .collect::<Vec<&str>>();
+    
+    let dungeon_str = match args.len() {
+        0..=1 => {
+            let mut rng = rand::rng();
+            dungeon_strings.choose(&mut rng).unwrap()
+        },
+        _ => args.get(1).unwrap().as_str()
+    };
 
-    let mut rng = rand::rng();
-    let dungeon_str = dungeon_strings.choose(&mut rng).unwrap();
-    // let dungeon_str = "030808091000051111021004121311141004151515150100161617181804161606181800291999991999991009999990910009199999399090999099099099999999";
     println!("Dungeon String: {}", dungeon_str);
 
-    let mut dungeon = Dungeon::from_string(dungeon_str, &room_data_storage);
+    let mut dungeon = Dungeon::from_string(dungeon_str, &room_data_storage).unwrap();
 
     for room in &dungeon.rooms {
         // println!("Room: {:?} type={:?} rotation={:?} shape={:?} corner={:?}", room.segments, room.room_data.room_type, room.rotation, room.room_data.shape, room.get_corner_pos());

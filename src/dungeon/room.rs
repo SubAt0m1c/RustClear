@@ -28,24 +28,24 @@ impl Room {
 
         let crushers = room_data.crusher_data.iter().map(|data| {
             let mut crusher = Crusher::from_json(data);
+            
             crusher.direction = crusher.direction.rotate(rotation);
-
-            let mut pos = crusher.block_pos.rotate(&rotation);
+            crusher.block_pos = crusher.block_pos.rotate(rotation);
 
             // This is fucking aids
-            pos = match rotation {
+            match rotation {
                 Direction::North => match crusher.direction {
-                    Direction::East | Direction::West => pos.add_z(crusher.width - 1),
-                    _ => pos.add_x(crusher.width - 1),
+                    Direction::East | Direction::West => crusher.block_pos.add_z(crusher.width - 1),
+                    _ => crusher.block_pos.add_x(crusher.width - 1),
                 },
                 Direction::South => match crusher.direction {
-                    Direction::East | Direction::West => pos.add_z(-crusher.width + 1),
-                    _ => pos.add_x(-crusher.width + 1),
+                    Direction::East | Direction::West => crusher.block_pos.add_z(-crusher.width + 1),
+                    _ => crusher.block_pos.add_x(-crusher.width + 1),
                 }
                 _ => crusher.block_pos,
             };
 
-            crusher.block_pos = pos
+            crusher.block_pos = crusher.block_pos
                 .add_x(corner_pos.x)
                 .add_z(corner_pos.z);
 
@@ -297,7 +297,7 @@ impl Room {
             let z = (ind / self.room_data.width) % self.room_data.length;
             let y = self.room_data.bottom + ind / (self.room_data.width * self.room_data.length);
 
-            let bp = BlockPos { x, y, z }.rotate(&self.rotation);
+            let bp = BlockPos { x, y, z }.rotate(self.rotation);
 
             world.set_block_at(block, corner.x + bp.x, y, corner.z + bp.z);
         }

@@ -67,13 +67,13 @@ impl BlockPos {
         }
     }
 
-    pub fn rotate(&self, rotation: &Direction) -> BlockPos {
+    pub fn rotate(&self, rotation: Direction) -> Self {
         match rotation {
-            Direction::North => BlockPos { x: self.x, y: self.y, z: self.z },
-            Direction::East => BlockPos { x: -self.z, y: self.y, z: self.x },
-            Direction::South => BlockPos { x: -self.x, y: self.y, z: -self.z },
-            Direction::West => BlockPos { x: self.z, y: self.y, z: -self.x },
-            _ => BlockPos { x: self.x, y: self.y, z: self.z },
+            Direction::North => Self { x: self.x, y: self.y, z: self.z },
+            Direction::East => Self { x: -self.z, y: self.y, z: self.x },
+            Direction::South => Self { x: -self.x, y: self.y, z: -self.z },
+            Direction::West => Self { x: self.z, y: self.y, z: -self.x },
+            _ => Self { x: self.x, y: self.y, z: self.z },
         }
     }
 
